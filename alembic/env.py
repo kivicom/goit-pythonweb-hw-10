@@ -5,12 +5,26 @@ This script sets up the Alembic migration environment, including the database co
 and metadata for running migrations in both online and offline modes.
 """
 
+import os
+
 from logging.config import fileConfig
+from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 from models import Base
 
+
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Get the Alembic Config object
 config = context.config  # pylint: disable=no-member
+
+# Set sqlalchemy.url from .env
+config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL"))
+
+
 fileConfig(config.config_file_name)
 target_metadata = Base.metadata
 
