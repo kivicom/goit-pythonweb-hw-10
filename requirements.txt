@@ -5,3 +5,10 @@ psycopg2-binary==2.9.9
 alembic==1.13.2
 pydantic==2.7.4
 python-dotenv==1.0.1
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+fastapi-limiter==0.1.6
+python-multipart==0.0.9
+cloudinary==1.40.0
+fastapi-mail==1.4.1
+redis==5.0.8

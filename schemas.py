@@ -18,6 +18,25 @@ class ContactUpdate(ContactBase):
 
 class ContactInDB(ContactBase):
     id: int
+    user_id: int
 
     class Config:
         from_attributes = True
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserInDB(BaseModel):
+    id: int
+    email: EmailStr
+    verified: bool
+    avatar: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class Token(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str

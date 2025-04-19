@@ -1,1 +1,135 @@
-Generic single-database configuration.
+# Contacts API
+
+A REST API built with FastAPI, SQLAlchemy, and PostgreSQL for managing contacts. Supports user authentication, email verification, avatar uploads via Cloudinary, rate limiting, and CORS.
+
+## Features
+
+- **Contact Management**: Create, read, update, delete, search contacts, and get upcoming birthdays.
+- **User Authentication**: Register and log in users with JWT tokens (access and refresh tokens).
+- **Email Verification**: Verify user email addresses via a link sent to their inbox.
+- **Avatar Uploads**: Upload and store user avatars using Cloudinary.
+- **Rate Limiting**: Limit requests to sensitive endpoints (e.g., `/users/me` to 10 per minute).
+- **CORS**: Configured to allow cross-origin requests from specified frontends.
+- **Dockerized**: Run the app, PostgreSQL, and Redis using Docker Compose.
+
+## Prerequisites
+
+- Python 3.11+
+- Docker and Docker Compose
+- Cloudinary account (for avatar uploads)
+- SMTP server credentials (e.g., Gmail for email verification)
+
+## Setup
+
+1. **Clone the repository**:
+
+   ```bash
+   git clone <repository-url>
+   cd <repository-directory>
+   ```
+
+2. **Create and configure .env: Copy the example .env file and fill in the required variables**:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   **Example .env content**:
+
+   ```bash
+   DATABASE_URL=postgresql://postgres:123456@postgres:5432/postgres
+   JWT_SECRET_KEY=your_jwt_secret_key
+   JWT_ALGORITHM=HS256
+   JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+   JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
+   CLOUDINARY_CLOUD_NAME=your_cloud_name
+   CLOUDINARY_API_KEY=your_api_key
+   CLOUDINARY_API_SECRET=your_api_secret
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USER=your_email@gmail.com
+   SMTP_PASSWORD=your_smtp_password
+   REDIS_URL=redis://redis:6379/0
+   ```
+
+- Generate a secure JWT_SECRET_KEY (e.g., using openssl rand -hex 32).
+- Get Cloudinary credentials from cloudinary.com.
+- Use an SMTP server (e.g., Gmail App Password for SMTP_USER and SMTP_PASSWORD).
+
+3. **Install dependencies: If running locally without Docker, install Python dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. **Run migrations: Apply database migrations using Alembic**:
+   ```bash
+   alembic upgrade head
+   ```
+
+## Running the Application
+
+### With Docker Compose (Recommended)
+
+1. **Build and start the containers**:
+
+   ```bash
+   docker-compose up --build
+   ```
+
+2. **The API will be available at http://localhost:8000**.
+3. **Apply migrations inside the container**:
+   ```bash
+   docker-compose exec app alembic upgrade head
+   ```
+
+### Locally
+
+1. Start PostgreSQL and Redis locally or ensure they are accessible.
+2. Run the FastAPI server:
+   ```bash
+   uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+   ```
+3. The API will be available at http://localhost:8000.
+
+## API Endpoints
+
+### Authentication
+
+- POST /auth/signup: Register a new user (returns 201).
+  - Body: { "email": "user@example.com", "password": "password123" }
+- POST /auth/login: Log in and get JWT tokens.
+  - Body: { "email": "user@example.com", "password": "password123" }
+- GET /auth/verify/{token}: Verify email using the token from the email link.
+
+### User
+
+- GET /users/me: Get the current user's profile (rate-limited to 10 requests per minute).
+- PATCH /users/avatar: Update the current user's avatar (multipart file upload).
+
+### Contacts (Authenticated)
+
+All endpoints require a valid JWT Authorization: Bearer <access_token> header.
+
+- POST /contacts/: Create a new contact (returns 201).
+  - Body: { "first_name": "John", "last_name": "Doe", "email": "john@example.com", "phone_number": "+1234567890", "birthday": "1990-01-01", "additional_info": "Friend" }
+- GET /contacts/: List contacts (supports skip and limit query params).
+- GET /contacts/{contact_id}: Get a single contact by ID.
+- PUT /contacts/{contact_id}: Update a contact by ID.
+- DELETE /contacts/{contact_id}: Delete a contact by ID.
+- GET /contacts/search/?query={query}: Search contacts by name or email.
+- GET /contacts/birthdays/: Get contacts with birthdays in the next 7 days.
+
+## Testing
+
+Access the interactive API documentation at http://localhost:8000/docs to test endpoints.
+
+1. Register a user via /auth/signup.
+2. Verify your email using the link sent to your inbox.
+3. Log in via /auth/login to get an access_token.
+4. Use the token in the Authorization header to access contact endpoints.
+
+## Notes
+
+- Ensure .env variables are set correctly before running.
+- For production, use a secure JWT_SECRET_KEY and replace localhost with your domain.
+- The DATABASE_URL in .env should match the PostgreSQL service name in docker-compose.yml.
+- Rate limiting requires Redis to be running.
